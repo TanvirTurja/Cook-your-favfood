@@ -1,7 +1,29 @@
 <template >
    <body class="dark:bg-gray-600 ">
      <!-- body -->
-    
+
+    <!-- start -->
+      <section class="text-gray-600 body-font">
+      
+<div class="w-full h-[700px] flex items-center overflow-hidden">
+    <div class="slideshow-container" :style="containerStyle">
+      <transition name="slide-fade" mode="out-in">
+        <div :key="currentSlide" class="slideshow-slide">
+          <div class="image-container relative">
+            <img :src="images[currentSlide].src" :alt="'Slide ' + (currentSlide + 1)" class="w-full h-auto max-h-64">
+            <div class="image-overlay absolute inset-0 flex flex-col justify-center items-center opacity-0 hover:opacity-100 transition-opacity duration-300 ease-in-out pb-20">
+              <h2 class="text-white text-2xl font-semibold">{{images[currentSlide].title}}</h2>
+              <button class="text-white bg-indigo-500 border-0 py-2 px-4 mt-2 rounded-full" @click="getSpecificRecipes(images[currentSlide].title)">Learn More</button>
+            </div>
+          </div>
+        </div>
+      </transition>
+    </div>
+  </div>
+      
+        
+  </section>
+    <!-- start -->
 
       <!-- search -->
       <section class="text-gray-600 body-font dark:bg-gray-600 mb-6">
@@ -135,6 +157,10 @@
 
 <script>
 import axios from "axios";
+import pizzaImage from '../assets/images/pizza.jpg';
+import chickenImage from '../assets/images/chicken.jpg';
+import saladImage from '../assets/images/salad.jpg';
+
 export default{
   components: {
   
@@ -145,31 +171,59 @@ export default{
        apiKey : import.meta.env.VITE_API_KEY,
         recipe : [],
         showloading : false,
+         images: [
+        { src: pizzaImage , title: "PIZZA"},
+        { src: chickenImage, title: "CHICKEN" },
+        { src: saladImage, title: "SALAD" },
+      ],
+      currentSlide: 0,
+       
 
     }
   },
    computed: {
      
     },
+   
  
   mounted() {
-   
+    setInterval(this.nextSlide, 5000); // Change slide every 3 seconds
   },
   methods: {
+    slideClasses(index) {
+      return {
+        'opacity-100': this.currentSlide === index,
+        'opacity-0': this.currentSlide !== index,
+      };
+    },
+     nextSlide() {
+      this.currentSlide = (this.currentSlide + 1) % this.images.length;
+    },
+     
+
      storeSearch(){
         this.getrecipes()
         
 
        
       },
+      async getSpecificRecipes(search){
+        this.search = search
+        this.getrecipes()
+       
+      },
+
+
+
       async getrecipes(){
         
         this.showloading = true
 
         try {
           
-          const response = await axios.get('https://edamam-recipe-search.p.rapidapi.com/search', {
+          const response = await axios.get('https://edamam-recipe-search.p.rapidapi.com/api/recipes/v2', {
           params: {
+            type: 'public',
             q: this.search
           },
           headers: {
@@ -178,7 +232,7 @@ export default{
           }
         })
 
-        console.log(response.data.hits)
+        console.log(response)
         this.recipe = response.data.hits
         
           
@@ -281,5 +335,49 @@ h1:before {
   transform: translateX(0)
 }
 
+/* slideshow */
+.slideshow-container {
+  width: 100%; /* Full width */
+  height: 100%;
+  overflow: hidden; /* Hide overflowed images */
+  position: relative; /* Relative positioning for slides */
+}
+
+.slideshow-inner {
+  display: flex; /* Display slides horizontally */
+  transition: transform 0.5s ease; /* Smooth slide transition */
+}
+
+.slideshow-slide {
+  flex: 0 0 100%; /* Each slide takes 100% width */
+}
+
+img {
+  width: 100%;
+  height: auto; /* Maintain aspect ratio */
+  max-height: 100vh; /* Limit the height while maintaining aspect ratio */
+}
+
+.image-container {
+  position: relative;
+  
+}
+
+.image-overlay {
+  background-color: rgba(24, 22, 22, 0.7);
+  text-align: center;
+  opacity: 1;
+  transition: opacity 0.3s;
+}
+
+.image-overlay h2 {
+  margin-bottom: 8px;
+}
+
+.image-overlay button {
+  cursor: pointer;
+}
+
+/* slideshow */
 
 </style>
